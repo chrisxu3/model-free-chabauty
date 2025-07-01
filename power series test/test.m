@@ -35,17 +35,26 @@ create_M := function(n, a)
     return M;
 end function;
 
+// Given a lower triangular matrix M and a vector b, solves Mx = b for x.
+solve := function(M, b)
+    N := #b;
+    x := [*0 : i in [1..N]*];
+    x[1] := b[1]/M[1,1];
+    for n in [2..N] do 
+        x[n] := (b[n] - (&+[M[n,i]*x[i] : i in [1..n-1]]))/M[n,n];
+    end for;
+    return x;
+end function;
+
 function expand_at_cm_pt(f,x,y,D,N,pr)
     tau := x+y*Sqrt(-D);
     // a := derivatives of j-inv at q_b (1-indexed)
-    a := Vector(CoeffList(TaylorExpansionTau(CreateSeries(j), tau, pr), 1, N+1));
+    a := CoeffList(TaylorExpansionTau(CreateSeries(j), tau, pr), 1, N+1);
     // b := derivatives of f(q) (of f(q) dq) at q_b (0-indexed)
-    b := Vector(CoeffList(TaylorExpansionTau(CreateSeries(f), tau, pr), 0, N));
+    b := CoeffList(TaylorExpansionTau(CreateSeries(f), tau, pr), 0, N);
     // c := coefficients of f w.r.t j-j_b (0-indexed).
     M := create_M(N, a);
-    M[1][1];
-    Determinant(M);
-    return b*Transpose(NumericalInverse(M));
+    return solve(M, b);
 end function;
 
 expand_at_cm_pt(f1,43/2,1/2,43,N,pr);

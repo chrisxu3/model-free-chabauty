@@ -5,7 +5,7 @@ intrinsic CreateSeries(fun::UserProgram) -> XuSeries
     r := New(XuSeries);
     r`coeffs := [**];
     r`fun := fun;
-    _, r`v, r`d := r`fun(5);
+    _, r`v, r`d := r`fun(20);
     r`ZZ := Integers();
     r`CC := ComplexField();
     r`prec := r`v-1;
