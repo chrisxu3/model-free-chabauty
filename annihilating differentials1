@@ -1,27 +1,2 @@
-// determining annihilating differentials from cusp forms
 
-// defining cusp forms and precision
-M := 200;
-//level := 37;
-level := 43;
-R<q>:=LaurentSeriesRing(Rationals(),M);
-C2 := CuspForms(level, 2);
-C2 := BaseExtend(C2, Rationals()); 
-SetPrecision(C2, M);
 
-// computing eigenforms with modular symbols
-Mm := ModularSymbols(level);
-Cm := CuspidalSubspace(Mm);
-eigenforms_basis := qExpansionBasis(Cm, M); // need to check if this genuinely gives eigenforms
-eigenforms_basis := [C2 ! eigenforms_basis[i]: i in [1..#eigenforms_basis]]; // forcing eigenforms to be recognised as modular forms so that we can define their L functions
-
-// computing L functions to determine annihilating differentials
-ann_diffs := [];
-for eigenform in eigenforms_basis do
-    if Evaluate(LSeries(eigenform), 1) ne 0 then
-        ann_diffs := Append(ann_diffs, eigenform);
-        print Index(eigenforms_basis, eigenform), "eigenform is annihilating";
-    else
-        print Index(eigenforms_basis, eigenform), "eigenform isn't annihilating";
-    end if;
-end for;
