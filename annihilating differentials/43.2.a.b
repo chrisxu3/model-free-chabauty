@@ -11,7 +11,10 @@ B2 := Basis(C2,M);
 
 // recovering newforms from LMFDB
 N2 := Newforms(C2); 
-f_43_LMFDB := ComplexEmbeddings(N2[2][1])[1][1] + ComplexEmbeddings(N2[2][1])[1][2];
+f_43_LMFDB := ComplexEmbeddings(N2[2][1])[1][1] + ComplexEmbeddings(N2[2][1])[1][2]; // construct trace form
+
+// construct image of trace form under Tp to obtain a second annihilating differential 
+
 
 // writing newforms as a linear combination of eisenstein series 
 sturm_bound := Floor((level+1)/6);
