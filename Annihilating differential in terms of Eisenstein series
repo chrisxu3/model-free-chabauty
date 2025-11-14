@@ -1,0 +1,111 @@
+// set up
+M := 50;
+level := 37;
+K<zetaN> := CyclotomicField(level);
+//R<q>:= LaurentSeriesRing(Rationals(), M); // this doesn't give fractional powers of q
+L<q_N> := PuiseuxSeriesRing(K, M);
+cfprec := 100;
+CF<i> := ComplexField(cfprec);
+pi := Pi(RealField(100));
+C1 := -2*pi*i;
+
+////////////////////////////////////////////////////////////////////////////////////
+// constructing G_k(tau, v) functions, v = (c_v, d_v)
+//////////////////////////////////////////////////////////////////////////////
+
+// sigma_k^v(n)
+sigma_k := function(n, k, c_v, d_v);
+sum := [];
+negative_divisors := [-m : m in Divisors(n)];
+divisors := Divisors(n) cat negative_divisors;
+for divisor in divisors do
+  if (GF(level)!n/divisor) eq (GF(level)!c_v) then 
+    sum_term := Sign(divisor)*divisor^k*zetaN^(d_v*divisor);
+    sum := sum cat [sum_term]; 
+  end if;
+end for;
+if #sum eq 0 then
+  return 0;
+else
+  return &+sum;
+end if;
+end function;
+
+// delta(c_v)
+small_delta := function(c_v);
+if GF(level)!c_v eq 0 then
+  return 1;
+else
+  return 0;
+end if;
+end function;
+
+// zeta^d_v(k) for k=1 or 2
+zeta := function(k, d_v);
+if k eq 1 then
+  return (pi/level)*Cot((d_v*pi)/level); // must have d_v nonzero
+elif k eq 2 then 
+  return -level^(-2)*(-pi/Sin((pi*d_v)/level))^2;
+end if;
+end function;
+
+// G_k(tau, v)
+G_k := function(k, c_v, d_v, prec);
+sigma_k_minus_1_prec := &+[sigma_k(n, k-1, c_v, d_v)*(q_N^n): n in [1..prec]];
+return small_delta(c_v)*zeta(k, d_v) + Factorial(k-1)^(-1)*(C1/level)^k*sigma_k_minus_1_prec; 
+// the above gives an error since C1 is a complex number trying to be multiplied by sigma_0_prec which is in L
+end function;
+
+g_k := function(k, c_v, d_v, prec);
+return (C1/level)*(c_v/level - 1/2) + G_k(1, c_v, d_v, prec);
+// has same error as G_k
+end function;
+
+// possible c_v, d_v values - make (Z/NZ)^2
+
+// this caused an error as g_1 was then being evaluated at non-integer values add_gp.1
+//add_gp := AdditiveGroup(Integers(level)); // add_gp.1 is generator for this
+//ZNZ_square := [[b_1*add_gp.1, b_2*add_gp.1]: b_1 in [0..level-1], b_2 in [0..level-1]];
+//ZNZ_square_order_N := Exclude(ZNZ_square, [0, 0]); // def in this way makes g_1 not be able to recognise as add_gp isn't an integer 
+
+// corrected code
+ZNZ_square := [[b_1, b_2]: b_1 in [0..level-1], b_2 in [0..level-1]];
+ZNZ_square_order_N := Exclude(ZNZ_square, [0, 0]);
+ZNZ_d_v_nonzero := [ZNZ_square_order_N[i]: i in [level..#ZNZ_square_order_N]]; // only elements with nonzero d_v
+
+// space of products of g_1(tau, vector) 
+g_1_prec := 20;
+//g_1_products := [g_1(ZNZ_square_order_N[i][1], ZNZ_square_order_N[i][2], g_1_prec)*g_1(ZNZ_square_order_N[j][1], ZNZ_square_order_N[j][2], g_1_prec): j in [1..i], i in [1..#ZNZ_square_order_N]]; 
+// above returned an error as had elements with d_v = 0 so zeta(d_v) is undefined
+g_1_products := [g_1(ZNZ_d_v_nonzero[i][1], ZNZ_d_v_nonzero[i][2], g_1_prec)*g_1(ZNZ_d_v_nonzero[j][1], ZNZ_d_v_nonzero[j][2], g_1_prec): j in [1..i], i in [1..#ZNZ_d_v_nonzero]]; 
+g_1_index := [[i, j] : j in [1..i], i in [1..#ZNZ_square_order_N]]; // checking format of above set
+
+/////////////////////////////////////////////////////////////////////////////////////
+// writing annilhilating differential from products of g_1
+/////////////////////////////////////////////////////////////////////////////////////
+
+// constant we need to take away from product to get cusp forms
+// set up
+x_v := function(c_v, d_v, prec);
+return level^2*G_k(2, c_v, d_v, prec) - G_k(2, 0, 0, prec);
+end function;
+
+lambda_v := function(c_v, d_v, prec);
+return -level*g_k(1, c_v, d_v);
+end function;
+
+// TO DO: constant terms to take away to give cusp forms 
+
+
+// TO DO: generate space of cusp forms (from traces)
+
+
+// annihilating differential from cusp forms 
+C2 := CuspForms(level, 2);
+B2 := Basis(C2,M);
+ann_diff := B2[1];
+
+// write annihliating differential in terms of products of traces of g_1s
+no_of_coeffs := 30;
+ann_diff_matrix := Matrix(Cyc, 1, no_of_coeffs, [Coefficient(ann_diff, j): j in [2..no_of_coeffs+1]]); 
+
