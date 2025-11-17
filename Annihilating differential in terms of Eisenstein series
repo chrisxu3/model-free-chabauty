@@ -98,14 +98,23 @@ end function;
 
 
 // TO DO: generate space of cusp forms (from traces)
-
+traces := ;
 
 // annihilating differential from cusp forms 
 C2 := CuspForms(level, 2);
 B2 := Basis(C2,M);
 ann_diff := B2[1];
 
-// write annihliating differential in terms of products of traces of g_1s
+// write annihliating differential in terms of products of traces of g_1s: can go from 2nd coefficient as 1st will be 0
 no_of_coeffs := 30;
-ann_diff_matrix := Matrix(Cyc, 1, no_of_coeffs, [Coefficient(ann_diff, j): j in [2..no_of_coeffs+1]]); 
+ann_diff_matrix := Matrix(1, no_of_coeffs, [Coefficient(ann_diff, j): j in [2..no_of_coeffs+1]]); 
+traces_matrix := Matrix(#traces, no_of_coeffs, [[Coefficient(traces[i], j): j in [2..no_of_coeffs+1]]: i in [1..#traces]]);
+ann_diff_sol := Solution(traces_matrix, ann_diff_matrix);
+ann_diff_from_traces := &+[ann_diff_sol[1][i]*traces[i]: i in [1..#traces]];
+
+// checking we have found the right linear combination
+checking_ann_diff_linear_combination := ann_diff - ann_diff_from_traces;
+print checking_ann_diff_linear_combination;
+
+
 
