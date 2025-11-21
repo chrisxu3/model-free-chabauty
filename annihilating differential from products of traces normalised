@@ -1,0 +1,127 @@
+// set up
+M := 50;
+level := 37;
+K<zetaN> := CyclotomicField(level);
+//R<q>:= LaurentSeriesRing(Rationals(), M); // this doesn't give fractional powers of q
+L<q_N> := PuiseuxSeriesRing(K, M);
+cfprec := 100;
+
+////////////////////////////////////////////////////////////////////////////////////
+// constructing G_k(tau, v) functions, v = (c_v, d_v)
+//////////////////////////////////////////////////////////////////////////////
+
+// sigma_k^v(n)
+sigma_k_norm := function(n, k, c_v, d_v);
+sum := [];
+negative_divisors := [-m : m in Divisors(n)];
+divisors := Divisors(n) cat negative_divisors;
+for divisor in divisors do
+  if ((n/divisor) - c_v) eq 0 mod level then
+    zeta_exp := Integers()!d_v*divisor;
+    sum_term := Sign(divisor)*divisor^k*zetaN^(zeta_exp);
+    sum := sum cat [sum_term]; 
+  end if;
+end for;
+if #sum eq 0 then
+  return 0;
+else
+  return &+sum;
+end if;
+end function;
+
+// constant term of Gk(v, tau) 
+Gk_const_norm := function(k, c_v, d_v);
+if c_v eq 0 mod level then
+  if k eq 1 then
+    return (-1/2*level)*((zetaN^d_v + 1)/(zetaN^d_v-1)); // must have d_v nonzero - have this since c_v is zero and (0, 0) doesn't have order N
+  elif k eq 2 then 
+    return -(level)^(-2)*(2-zetaN^d_v-zetaN^(level-d_v))^(-1);
+  end if;
+else
+  return 0;
+end if;
+end function;
+
+// G_k(tau, v)
+G_k_norm := function(k, c_v, d_v, prec);
+sigma_k_minus_1_prec := &+[sigma_k_norm(n, k-1, c_v, d_v)*(q_N^n): n in [1..prec]];
+return Gk_const_norm(k, c_v, d_v) + (Factorial(k-1)*level^k)^(-1)*sigma_k_minus_1_prec; 
+end function;
+
+g_k_norm := function(k, c_v, d_v, prec);
+a := -(1/level)*(c_v/level - 1/2);
+a := L!a;
+b :=  G_k_norm(1, c_v, d_v, prec);
+return a + b; // ERROR - can't add these two things together (a is rational, b in cyclotomic Puiseux series ring)
+//return L!-((1/level)*(c_v/level - 1/2)) + G_k_norm(1, c_v, d_v, prec);
+end function;
+
+/////////////////////////////////////////////////////////////////////////////////////
+// writing annilhilating differential from products of g_1
+/////////////////////////////////////////////////////////////////////////////////////
+
+// constant we need to take away from product to get cusp forms
+// set up
+Eisen1 := R!&+[DivisorSigma(p-2, j)*q^j:j in [1..200]];
+Eisen := 1 - 24*Eisen1; // E when p=3
+
+x_v_norm := function(c_v, d_v, prec);
+return level^2*G_k_norm(2, c_v, d_v, prec) + (1/6)*Eisen;
+end function;
+
+lambda_v_norm := function(c_v, d_v, prec);
+return -level*g_k_norm(1, c_v, d_v, prec);
+end function;
+
+// constructing traces
+
+// coset representatives of Gamma0(N)/Gamma(N)
+cosets_Gamma0 := [Matrix(GF(level), 2, 2, [[a, b], [0, a^(-1)]]): b in [0..36], a in [1..36]];
+
+// coset representatives of SL2(Z)/Gamma0(N)
+cosets_SL2 := [Matrix(2, 2, [[1, b], [0, 1]]): b in [0..36]] cat [Matrix(2, 2, [[0, -1], [1, 0]])];
+
+// action of sigma in cosets reps for Gamma0(N)/Gamma(N) on lambda_v
+sigma_action_lambda_v_norm := function(c_v, d_v, sigma, prec);
+return lambda_v_norm(sigma[1][1]*c_v + sigma[2][1]*d_v, sigma[1][2]*c_v + sigma[2][2]*d_v, prec); 
+end function;
+
+// constructing trace of a lambda_v*lambda_w product
+trace_of_lambda_product := function(c_v, d_v, c_w, d_w, prec);
+summands := [lambda_v_norm(c_v, d_v, prec)*lambda_v_norm(c_w, d_w, prec)];
+for sigma in cosets do
+  lambda_prod_sigma := sigma_action_lambda_v_norm(c_v, d_v, sigma, prec)*sigma_action_lambda_v_norm(c_w, d_w, sigma, prec);
+  summands := summands cat [lambda_prod_sigma];
+end for;
+return &+summands;
+end function;
+
+
+// generate an element of M2(Gamma0(N)) from trace of lambda products 
+index := 1; // which coset matrix of SL2(Z)/Gamma0(N) we are taking 
+v_w := cosets_SL2[index];
+f_tilde_prec := 10;
+T := Time();
+f_tilde := trace_of_lambda_product(v_w[1][1], v_w[1][2], v_w[2][1], v_w[2][2], f_tilde_prec);
+f_tilde := trace_of_lambda_product(1, 0, 0, 1, f_tilde_prec);
+
+print Time(T);
+
+print [sigma_k(n, 0, v_w[1][1], v_w[1][2]): n in [1..10]];
+sigma_k(, v_w[2][1], v_w[2][2])
+
+// annihilating differential from cusp forms 
+M2 := ModularForms(level, 2);
+B2 := Basis(M2,M);
+ann_diff := B2[1];
+
+// write annihliating differential in terms of products of traces of g_1s: can go from 2nd coefficient as 1st will be 0
+no_of_coeffs := 10;
+ann_diff_matrix := Matrix(1, no_of_coeffs, [Coefficient(ann_diff, j): j in [2..no_of_coeffs+1]]); 
+traces_matrix := Matrix(#traces, no_of_coeffs, [[Coefficient(traces[i], j): j in [2..no_of_coeffs+1]]: i in [1..#traces]]);
+ann_diff_sol := Solution(traces_matrix, ann_diff_matrix);
+ann_diff_from_traces := &+[ann_diff_sol[1][i]*traces[i]: i in [1..#traces]];
+
+// checking we have found the right linear combination
+checking_ann_diff_linear_combination := ann_diff - ann_diff_from_traces;
+print checking_ann_diff_linear_combination;
