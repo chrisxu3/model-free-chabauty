@@ -31,24 +31,6 @@ else
 end if;
 end function;
 
-// delta(c_v)
-small_delta := function(c_v);
-if GF(level)!c_v eq 0 then
-  return 1;
-else
-  return 0;
-end if;
-end function;
-
-// zeta^d_v(k) for k=1 or 2
-zeta := function(k, d_v);
-if k eq 1 then
-  return (pi/level)*Cot((d_v*pi)/level); // must have d_v nonzero
-elif k eq 2 then 
-  return -level^(-2)*(-pi/Sin((pi*d_v)/level))^2;
-end if;
-end function;
-
 // constant term of Gk(v, tau) 
 Gk_const := function(k, c_v, d_v);
 if GF(level)!c_v eq 0 then
@@ -57,6 +39,8 @@ if GF(level)!c_v eq 0 then
   elif k eq 2 then 
     return -level^(-2)*(-pi/Sin((pi*d_v)/level))^2;
   end if;
+else
+  return 0;
 end if;
 end function;
 
@@ -67,36 +51,10 @@ return Gk_const(k, c_v, d_v) + Factorial(k-1)^(-1)*(C1/level)^k*sigma_k_minus_1_
 // the above gives an error since C1 is a complex number trying to be multiplied by sigma_0_prec which is in L
 end function;
 
-// G_k(tau, v)
-G_k := function(k, c_v, d_v, prec);
-sigma_k_minus_1_prec := &+[sigma_k(n, k-1, c_v, d_v)*(q_N^n): n in [1..prec]];
-return small_delta(c_v)*zeta(k, d_v) + Factorial(k-1)^(-1)*(C1/level)^k*sigma_k_minus_1_prec; 
-// the above gives an error since C1 is a complex number trying to be multiplied by sigma_0_prec which is in L
-end function;
-
 g_k := function(k, c_v, d_v, prec);
 return (C1/level)*(c_v/level - 1/2) + G_k(1, c_v, d_v, prec);
 // has same error as G_k
 end function;
-
-// possible c_v, d_v values - make (Z/NZ)^2
-
-// this caused an error as g_1 was then being evaluated at non-integer values add_gp.1
-//add_gp := AdditiveGroup(Integers(level)); // add_gp.1 is generator for this
-//ZNZ_square := [[b_1*add_gp.1, b_2*add_gp.1]: b_1 in [0..level-1], b_2 in [0..level-1]];
-//ZNZ_square_order_N := Exclude(ZNZ_square, [0, 0]); // def in this way makes g_1 not be able to recognise as add_gp isn't an integer 
-
-// corrected code
-ZNZ_square := [[b_1, b_2]: b_1 in [0..level-1], b_2 in [0..level-1]];
-ZNZ_square_order_N := Exclude(ZNZ_square, [0, 0]);
-ZNZ_d_v_nonzero := [ZNZ_square_order_N[i]: i in [level..#ZNZ_square_order_N]]; // only elements with nonzero d_v
-
-// space of products of g_1(tau, vector) 
-g_1_prec := 20;
-//g_1_products := [g_1(ZNZ_square_order_N[i][1], ZNZ_square_order_N[i][2], g_1_prec)*g_1(ZNZ_square_order_N[j][1], ZNZ_square_order_N[j][2], g_1_prec): j in [1..i], i in [1..#ZNZ_square_order_N]]; 
-// above returned an error as had elements with d_v = 0 so zeta(d_v) is undefined
-g_1_products := [g_1(ZNZ_d_v_nonzero[i][1], ZNZ_d_v_nonzero[i][2], g_1_prec)*g_1(ZNZ_d_v_nonzero[j][1], ZNZ_d_v_nonzero[j][2], g_1_prec): j in [1..i], i in [1..#ZNZ_d_v_nonzero]]; 
-g_1_index := [[i, j] : j in [1..i], i in [1..#ZNZ_square_order_N]]; // checking format of above set
 
 /////////////////////////////////////////////////////////////////////////////////////
 // writing annilhilating differential from products of g_1
@@ -104,8 +62,12 @@ g_1_index := [[i, j] : j in [1..i], i in [1..#ZNZ_square_order_N]]; // checking 
 
 // constant we need to take away from product to get cusp forms
 // set up
+Eisen1 := R!&+[DivisorSigma(p-2, j)*q^j:j in [1..200]];
+Eisen := 1 - 24*Eisen1; // E when p=3
+G_k_Eisen := (pi^2/3)*Eisen; 
+
 x_v := function(c_v, d_v, prec);
-return level^2*G_k(2, c_v, d_v, prec) - G_k(2, 0, 0, prec);
+return level^2*G_k(2, c_v, d_v, prec) - G_k_Eisen;
 end function;
 
 lambda_v := function(c_v, d_v, prec);
@@ -138,7 +100,7 @@ end function;
 // generate an element of M2(Gamma0(N)) from trace of lambda products 
 index := 1; // which coset matrix of SL2(Z)/Gamma0(N) we are taking 
 v_w := cosets_SL2[index];
-f_tilde := function(v_w[1][1], v_w[1][2], v_w[2][1], v_w[2][2], prec);
+f_tilde := trace_of_lambda_product(v_w[1][1], v_w[1][2], v_w[2][1], v_w[2][2], prec);
 
 // annihilating differential from cusp forms 
 M2 := ModularForms(level, 2);
