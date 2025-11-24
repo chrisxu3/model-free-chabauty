@@ -105,7 +105,20 @@ index := 1; // which coset matrix of SL2(Z)/Gamma0(N) we are taking
 v_w := cosets_SL2[index];
 f_tilde_prec := 10;
 T := Time();
-f_tilde := trace_of_lambda_product(v_w[1][1], v_w[1][2], v_w[2][1], v_w[2][2], f_tilde_prec);
+
+f_tilde := function(v_w, prec);
+return trace_of_lambda_product(v_w[1][1], v_w[1][2], v_w[2][1], v_w[2][2], prec);
+end function;
+
+f_tilde_1 := f_tilde(cosets_SL2[1], f_tilde_prec);
+f_tilde_2 := f_tilde(cosets_SL2[2], f_tilde_prec);
+
+print f_tilde_1 - f_tilde_2; // this has no constant term - therefore is a cusp
+/////////////////////////////////////////////////////////////////////////
+// comparison between q_N and q???
+////////////////////////////////////////////////////////////////////////////
+
+
 f_tilde := trace_of_lambda_product(1, 0, 0, 1, f_tilde_prec);
 
 print Time(T);
