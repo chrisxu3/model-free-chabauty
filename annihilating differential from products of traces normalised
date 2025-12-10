@@ -1,9 +1,9 @@
 // set up
-M := 50;
+M := 500;
 level := 37;
 K<zetaN> := CyclotomicField(level);
 R<q_N>:= LaurentSeriesRing(K, M); // this doesn't give fractional powers of q
-//L<q_N> := PuiseuxSeriesRing(K, M);
+//L<q> := PuiseuxSeriesRing(K, M);
 cfprec := 100;
 
 ////////////////////////////////////////////////////////////////////////////////////
@@ -35,8 +35,10 @@ zeta_exp := Integers()!d_v;
 if c_v eq 0 mod level then
   if k eq 1 then
     return R!(-1/2*level)*((zetaN^zeta_exp + 1)/(zetaN^zeta_exp-1)); // must have d_v nonzero - have this since c_v is zero and (0, 0) doesn't have order N
+    //return L!(-1/2*level)*((zetaN^zeta_exp + 1)/(zetaN^zeta_exp-1)); // must have d_v nonzero - have this since c_v is zero and (0, 0) doesn't have order N
   elif k eq 2 then 
     return R!-(level)^(-2)*(2-zetaN^zeta_exp-zetaN^(level-zeta_exp))^(-1);
+    //return L!-(level)^(-2)*(2-zetaN^zeta_exp-zetaN^(level-zeta_exp))^(-1);
   end if;
 else
   return 0;
@@ -46,6 +48,7 @@ end function;
 // G_k(tau, v)
 G_k_norm := function(k, c_v, d_v, prec);
 sigma_k_minus_1_prec := &+[sigma_k_norm(n, k-1, c_v, d_v)*(q_N^n): n in [1..prec]];
+//sigma_k_minus_1_prec := &+[sigma_k_norm(n, k-1, c_v, d_v)*(q^(n/level)): n in [1..prec]];
 return Gk_const_norm(k, c_v, d_v) + (Factorial(k-1)*level^k)^(-1)*sigma_k_minus_1_prec; 
 end function;
 
@@ -68,7 +71,8 @@ end function;
 //Eisen1 := R!&+[DivisorSigma(p-2, j)*q^j:j in [1..200]];
 //Eisen := 1 - 24*Eisen1; // E when p=3
 p := 3;
-Eisen1 := R!&+[DivisorSigma(p-2, j)*q_N^(level*j):j in [1..200]];
+//Eisen1 := R!&+[DivisorSigma(p-2, j)*q_N^(level*j):j in [1..200]];
+Eisen1 := L!&+[DivisorSigma(p-2, j)*q^(j):j in [1..200]];
 Eisen := 1 - 24*Eisen1; // E when p=3
 
 x_v_norm := function(c_v, d_v, prec);
