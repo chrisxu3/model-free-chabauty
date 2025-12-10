@@ -2,8 +2,8 @@
 M := 50;
 level := 37;
 K<zetaN> := CyclotomicField(level);
-//R<q>:= LaurentSeriesRing(Rationals(), M); // this doesn't give fractional powers of q
-L<q_N> := PuiseuxSeriesRing(K, M);
+R<q_N>:= LaurentSeriesRing(K, M); // this doesn't give fractional powers of q
+//L<q_N> := PuiseuxSeriesRing(K, M);
 cfprec := 100;
 
 ////////////////////////////////////////////////////////////////////////////////////
@@ -34,9 +34,9 @@ Gk_const_norm := function(k, c_v, d_v);
 zeta_exp := Integers()!d_v;
 if c_v eq 0 mod level then
   if k eq 1 then
-    return (-1/2*level)*((zetaN^zeta_exp + 1)/(zetaN^zeta_exp-1)); // must have d_v nonzero - have this since c_v is zero and (0, 0) doesn't have order N
+    return R!(-1/2*level)*((zetaN^zeta_exp + 1)/(zetaN^zeta_exp-1)); // must have d_v nonzero - have this since c_v is zero and (0, 0) doesn't have order N
   elif k eq 2 then 
-    return -(level)^(-2)*(2-zetaN^zeta_exp-zetaN^(level-zeta_exp))^(-1);
+    return R!-(level)^(-2)*(2-zetaN^zeta_exp-zetaN^(level-zeta_exp))^(-1);
   end if;
 else
   return 0;
@@ -53,7 +53,7 @@ g_k_norm := function(k, c_v, d_v, prec);
 a := -(1/level)*(c_v/level - 1/2);
 a := Rationals()!a;
 a := K!a;
-a := L!a;
+//a := L!a;
 b :=  G_k_norm(1, c_v, d_v, prec);
 return a + b; // ERROR - can't add these two things together (a is rational, b in cyclotomic Puiseux series ring)
 //return L!-((1/level)*(c_v/level - 1/2)) + G_k_norm(1, c_v, d_v, prec);
@@ -67,6 +67,7 @@ end function;
 // set up
 //Eisen1 := R!&+[DivisorSigma(p-2, j)*q^j:j in [1..200]];
 //Eisen := 1 - 24*Eisen1; // E when p=3
+p := 3;
 Eisen1 := R!&+[DivisorSigma(p-2, j)*q_N^(level*j):j in [1..200]];
 Eisen := 1 - 24*Eisen1; // E when p=3
 
@@ -105,7 +106,7 @@ end function;
 // generate an element of M2(Gamma0(N)) from trace of lambda products 
 index := 1; // which coset matrix of SL2(Z)/Gamma0(N) we are taking 
 v_w := cosets_SL2[index];
-f_tilde_prec := 10;
+f_tilde_prec := 100;
 T := Time();
 
 f_tilde := function(v_w, prec);
@@ -114,6 +115,7 @@ end function;
 
 f_tilde_1 := f_tilde(cosets_SL2[1], f_tilde_prec);
 f_tilde_2 := f_tilde(cosets_SL2[2], f_tilde_prec);
+f_tilde_3 := f_tilde(cosets_SL2[3], f_tilde_prec);
 
 print f_tilde_1 - f_tilde_2; // this has no constant term - therefore is a cusp - has fractional powers??
 
