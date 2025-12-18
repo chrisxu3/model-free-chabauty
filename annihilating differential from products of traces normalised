@@ -2,9 +2,9 @@
 M := 500;
 level := 37;
 K<zetaN> := CyclotomicField(level);
-R<q_N>:= LaurentSeriesRing(K, M); // this doesn't give fractional powers of q
+R<q_N>:= LaurentSeriesRing(K, M); // this doesn't give fractional powers of q - take parameter as q_N
 //L<q> := PuiseuxSeriesRing(K, M);
-cfprec := 100;
+cfprec := 500;
 
 ////////////////////////////////////////////////////////////////////////////////////
 // constructing G_k(tau, v) functions, v = (c_v, d_v)
@@ -68,11 +68,11 @@ end function;
 
 // constant we need to take away from product to get cusp forms
 // set up
-//Eisen1 := R!&+[DivisorSigma(p-2, j)*q^j:j in [1..200]];
+//Eisen1 := R!&+[DivisorSigma(p-2, j)*q^j:j in [1..300]];
 //Eisen := 1 - 24*Eisen1; // E when p=3
 p := 3;
-//Eisen1 := R!&+[DivisorSigma(p-2, j)*q_N^(level*j):j in [1..200]];
-Eisen1 := L!&+[DivisorSigma(p-2, j)*q^(j):j in [1..200]];
+Eisen1 := R!&+[DivisorSigma(p-2, j)*q_N^(level*j):j in [1..300]];
+//Eisen1 := L!&+[DivisorSigma(p-2, j)*q^(j):j in [1..300]];
 Eisen := 1 - 24*Eisen1; // E when p=3
 
 x_v_norm := function(c_v, d_v, prec);
@@ -84,13 +84,22 @@ return -level*g_k_norm(1, c_v, d_v, prec);
 end function;
 
 // constructing traces
+Trace_tilde := function(qexpansion,prec);
+    trace_coeffs := [Trace(K!Coefficient(qexpansion, j)): j in [Valuation(qexpansion)..prec+Valuation(qexpansion)-1]];
+    return &+[trace_coeffs[i]*q_N^(Valuation(qexpansion)+i-1): i in [1..#trace_coeffs]];
+end function;
 
 // coset representatives of Gamma0(N)/Gamma(N)
-cosets_Gamma0 := [Matrix(GF(level), 2, 2, [[a, b], [0, a^(-1)]]): b in [0..level-1], a in [1..level-1]];
+//cosets_Gamma0 := [Matrix(GF(level), 2, 2, [[a, b], [0, a^(-1)]]): b in [0..level-1], a in [1..level-1]];
+//cosets_Gamma0 := [ChangeRing(matrix, Integers()): matrix in cosets_Gamma0];
+
+// coset representatives of Gamma0(N)/Gamma(N) in GL2
+cosets_Gamma0 := [Matrix(GF(level), 2, 2, [[a, b], [0, c]]): b in [0..level-1], a in [1..level-1], c in [1..level-1]];
 cosets_Gamma0 := [ChangeRing(matrix, Integers()): matrix in cosets_Gamma0];
 
 // coset representatives of SL2(Z)/Gamma0(N)
-cosets_SL2 := [Matrix(2, 2, [[1, b], [0, 1]]): b in [0..36]] cat [Matrix(2, 2, [[0, -1], [1, 0]])];
+//cosets_SL2 := [Matrix(2, 2, [[1, b], [0, 1]]): b in [0..36]] cat [Matrix(2, 2, [[0, -1], [1, 0]])];
+cosets_SL2 := [Matrix(2, 2, [[1, 0], [b, 1]]): b in [0..36]] cat [Matrix(2, 2, [[0, -1], [1, 0]])]; // attempt on 11/12/25
 
 // action of sigma in cosets reps for Gamma0(N)/Gamma(N) on lambda_v
 sigma_action_lambda_v_norm := function(c_v, d_v, sigma, prec);
@@ -110,7 +119,7 @@ end function;
 // generate an element of M2(Gamma0(N)) from trace of lambda products 
 index := 1; // which coset matrix of SL2(Z)/Gamma0(N) we are taking 
 v_w := cosets_SL2[index];
-f_tilde_prec := 100;
+f_tilde_prec := 200;
 T := Time();
 
 f_tilde := function(v_w, prec);
@@ -120,6 +129,9 @@ end function;
 f_tilde_1 := f_tilde(cosets_SL2[1], f_tilde_prec);
 f_tilde_2 := f_tilde(cosets_SL2[2], f_tilde_prec);
 f_tilde_3 := f_tilde(cosets_SL2[3], f_tilde_prec);
+
+trace :=Trace_tilde(f_tilde_1, 200);
+// all coefficients of this are 18 except for exponents of q_N that are 0 mod 37
 
 print f_tilde_1 - f_tilde_2; // this has no constant term - therefore is a cusp - has fractional powers??
 
