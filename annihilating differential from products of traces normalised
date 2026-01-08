@@ -53,12 +53,17 @@ return Gk_const_norm(k, c_v, d_v) + (Factorial(k-1)*level^k)^(-1)*sigma_k_minus_
 end function;
 
 g_k_norm := function(k, c_v, d_v, prec);
-a := -(1/level)*(c_v/level - 1/2);
+if c_v eq 0 mod level then
+  a := 0;
+else
+  a := (1/level)*(c_v/level - 1/2);
+end if;
+//a := -(1/level)*(c_v/level - 1/2);
 a := Rationals()!a;
 a := K!a;
 //a := L!a;
 b :=  G_k_norm(1, c_v, d_v, prec);
-return a + b; // ERROR - can't add these two things together (a is rational, b in cyclotomic Puiseux series ring)
+return a + b; 
 //return L!-((1/level)*(c_v/level - 1/2)) + G_k_norm(1, c_v, d_v, prec);
 end function;
 
