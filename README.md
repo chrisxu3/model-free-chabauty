@@ -35,7 +35,7 @@ and then the prompt to pick a curve will appear again.
 
 # Primes above 60.
 
-If you want to use primes above 60, you will need to download modular polynomials from Andrew Sutherland's website. 
+If you want to use primes above 60, you will need to download modular polynomials from Andrew Sutherland's website. See `mod_poly/README.md` for more detail.
 
 # The database.
 
