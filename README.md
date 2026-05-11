@@ -50,10 +50,10 @@ The file `gl2data_queries.py` obtains all "relevant" curves from the database an
 The file `gl2_zywina_a2.txt` contains all LMFDB labels for Zywina's list of 841 congruence groups in his open images paper, except for the ones that already have local obstructions.
 
 # Main files.
-`main_loader.m` loads the util files upon startup.
-`main.m` contains the main loop.
-`main1_mak_syms.m` computes a basis of weight 2 cusp forms in terms of Makdisi symbols.
-`main2_evaluation.m` computes the variable `XQp1` (see the "Disclaimer" section above).
+`main_loader.m` loads the util files upon startup. \
+`main.m` contains the main loop. \
+`main1_mak_syms.m` computes a basis of weight 2 cusp forms in terms of Makdisi symbols. \
+`main2_evaluation.m` computes the variable `XQp1` (see the "Disclaimer" section above). \
 
 # Util files.
 
