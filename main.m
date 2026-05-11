@@ -1,72 +1,50 @@
-load "zywina/GL2GroupTheory.m";
-load "zywina/ModularCurves.m";
+G := 0; N := 0; ind := 0; genus := 0; p := 0;
 
-I:=Open("zywina/agreeable.dat", "r");
-X:=AssociativeArray();
-repeat
-	b,y:=ReadObjectCheck(I);
-	if b then
-		X[y`key]:=y;
-	end if;
-until not b;
+procedure load_crv(l, ~G, ~N, ~ind, ~genus)
+    flag := false;
+    for X in XX do 
+        if l eq X`label or l eq X`name then
+            flag := true; 
+            G := X`subgroup; crv := X; break;
+        end if;
+    end for;
+    if not flag then
+        if l in XX_zyw then 
+            Error("This curve has local obstructions, already handled by LMFDB, and thus has no rational points.");
+        else 
+            Error("No subgroup found!"); 
+        end if;
+        bad1 := 0; bad2 := 1/bad1; 
+    end if;
+    try assert crv`genus gt 1; catch e Error(Sprintf("Your curve %o has genus equal to %o and is hence invalid...", l, crv`genus)); end try;
+    N := crv`level; ind := crv`index; genus := crv`genus;
+end procedure;
 
-keys := [k: k in Keys(X) | X[k]`is_agreeable and X[k]`genus ge 2];
-Sort(~keys, func<a,b|X[a]`level - X[b]`level>);
+procedure load_prime(prime, ~p)
+    try 
+        assert IsPrime(prime) and prime gt 3 and (N eq 0 or (N mod prime) ne 0);
+        p := prime;
+    catch e 
+        Error(Sprintf("Your prime %o is invalid!", p));
+    end try;
+end procedure;
 
-function OptimalConjugate(X)
-	G := X`G;
-	N := X`level;
-	gens := Generators(G);
-	ret_r := 0; ret_h := 0;
-	for h in GL(2,Integers(N)) do 
-		curr := {g^h : g in gens};
-		r := Generator(sub<Integers(N)|[M[2,1] : M in curr]>);
-		if r gt ret_r then
-			ret_h := curr;
-			ret_r := r; 
-		end if;
-	end for;
-	return ret_r, CreateModularCurveRec(N, curr);
-end function;
+procedure set_prec(prec)
+    SetDefaultRealField(RealField(prec));
+end procedure;
 
-function SL2Genus(H)
-	N := Characteristic(BaseRing(H));
-	SL2:=SL(2,Integers(N));
-    // To compute many of our quantities, there is no harm in adjoining -I to H.
-    H0:=sub<SL2|Generators(H) join {SL2![-1,0,0,-1]}>;
+while true do 
+    read l, "Enter a curve name: ";
+    try load_crv(l, ~G, ~N, ~ind, ~genus); break; catch e continue; end try;
+end while;
 
-    // We first find a set of representatives T of the cosets H0 \ SL2.
-    // We construct the map  f: SL2 -> T  for which f(A) and A lie in the same coset.
-
-    T,phi:=RightTransversal(SL2, H0);  
-    psi:=map<T->[1..#T] | {<T[i],i>: i in [1..#T]} >;
-    f:=phi*psi;  
-    
-    degree:=#T;  // The index of H0 in SL2.
-
-    // Compute the cusps and their widths
-    B:=SL2![1,1,0,1];
-    sigma:=Sym(#T)![f(t*B): t in T];   // permutation that describes how B acts on the set H0\SL2 via right multiplication  
-    C:=CycleDecomposition(sigma);
-    cusps0:=[Rep(c): c in C];
-    cusps :=[T[i]: i in cusps0];  
-	vinf:=#cusps; // number of cusps
-
-    // Compute number of elliptic points of order 2
-    B:=SL2![0,1,-1,0];
-    C:=CycleDecomposition(Sym(#T)![f(t*B): t in T]);
-    v2:=#[c: c in C | #c eq 1];
-
-    // Compute number of elliptic points of order 3
-    B:=SL2![0,-1,1,1];
-    C:=CycleDecomposition(Sym(#T)![f(t*B): t in T]);
-    v3:=#[c: c in C | #c eq 1];
-	return Integers()!( 1 + degree/12 - v2/4 - v3/3 - vinf/2 );
-end function;
-
-function Gamma0G(N)
-	G := GL(2,Integers(N));
-	x,m := MultiplicativeGroup(Integers(N));
-	gens := [m(k) : k in Generators(x)];
-	return sub<G | [[1,0,0,a] : a in gens] cat [[a,0,0,1] : a in gens] cat [[1,1,0,1]]>;
-end function;
+load "main1_mak_syms.m";
+assert assigned bad_primes; assert assigned bad_res_classes;
+while true do 
+    read pr, "Pick a prime: ";
+    try pr := StringToInteger(pr); catch e continue; end try;
+    if (not IsPrime(pr)) or (pr in bad_primes) or (oi(pr) in bad_res_classes) or (pr le 3) then print("Bad!"); continue; end if;
+    load_prime(pr,~p);
+    break;
+end while;
+load "main2_evaluation.m";

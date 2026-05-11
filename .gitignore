@@ -1,0 +1,11 @@
+__pycache__/
+_old/
+lagranges/
+mod_polys/__pycache__
+mod_polys/*.py
+mod_polys/phi*
+paper/
+gl2data_queries.py
+flasklog
+gl2.sig
+*.log
