@@ -16,6 +16,12 @@ XXQp1 := assoc_to_tup(XQp1);
 [dat[2] : dat in XXQp1];
 ```
 
+# Dependency.
+
+This program requires `CHIMP.spec`, found here: https://github.com/edgarcosta/CHIMP. As per the `README.md` there, clone that repository, and then add the following line to `~/.magmarc`: 
+
+```AttachSpec("<replace with the CHIMP installation directory>/CHIMP.spec");```
+
 # Usage.
 
 On startup of Magma, run:
