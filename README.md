@@ -1,17 +1,35 @@
+# Disclaimer.
+
+Currently the code is a bit incomplete; if you try to run the instructions below, you will get the variable XQp1. To access this variable, do the following:
+
+```
+XXQp1 := assoc_to_tup(XQp1);
+# This returns the list of keys of XQp1.
+# Each key is a tuple <j00, h, is_elliptic, tw>, where j00 is the j-invariant in question, h is the matrix giving the level structure (this is w.r.t. a chosen basis), is_elliptic gives if the point is elliptic, and tw gives a number that I've "twisted" by.
+[dat[1] : dat in XXQp1];
+# This returns the list of entries of XQp1.
+# Each entry is a matrix with g-r rows and some number of columns.
+# Each row gives coefficients for the expansion of a power series with respect to a uniformizer "t", such that "t" satisfies the following relation w.r.t. the j-invariant "j":
+# t = j-j00 if j00 isn't 0 or 1728, or if is_elliptic is true.
+# j = tw*t^3 if j00 is 0 and is_elliptic is false.
+# j = tw*t^2 + 1728 if j00 is 1728 and is_elliptic is false.
+[dat[2] : dat in XXQp1];
+```
+
 # Usage.
 
 On startup of Magma, run:
 
-load "main_loader.m";
+`load "main_loader.m";`
 
 When you are told to pick a curve, put in a RSZB label or a modular curve label that is in "gl2data.txt" or "gl2data_zywina_a2.txt". Examples of things you can input include:
 "15.90.3.a.1", "Xsp+(8)", "X0(9)" (no quotes needed)
 
-When you are told to pick a prime, pick a prime p that is at least 5, that does not divide the level of G, that is not in "bad_primes", and that is not congruent to a number in "bad_residue_classes" mod N.
+When you are told to pick a prime, type a prime p that is at least 5, that does not divide the level of G, that is not in "bad_primes", and that is not congruent to a number in "bad_residue_classes" mod N.
 
 If you want to try another curve, type 
 
-load "main.m";
+`load "main.m";`
 
 and then the prompt to pick a curve will appear again.
 
