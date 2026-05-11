@@ -1,6 +1,6 @@
 # Disclaimer.
 
-Currently the code is a bit incomplete; if you try to run the instructions below, you will get the variable XQp1. To access this variable, do the following:
+Currently the code is a bit incomplete; if you try to run the instructions below, you will get the variable `XQp1`. To access this variable, do the following after you've performed the instructions below:
 
 ```
 XXQp1 := assoc_to_tup(XQp1);
